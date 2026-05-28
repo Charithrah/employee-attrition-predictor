@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AttritionAI – Employee Attrition Prediction</title>
+<style>
+/* ═══════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:#020617;color:#fff;font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+ul{list-style:none}
+button{cursor:pointer;font-family:inherit}
+img{display:block;max-width:100%}
+
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:#020617}
+::-webkit-scrollbar-thumb{background:#3b82f6;border-radius:10px}
+
+/* ═══════════════════════════════════════════
+   NAVBAR
+═══════════════════════════════════════════ */
+nav{
+  position:fixed;top:0;left:0;width:100%;z-index:999;
+  background:rgba(2,6,23,0.7);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+.nav-inner{
+  max-width:1280px;margin:0 auto;
+  padding:18px 40px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.logo{font-size:1.5rem;font-weight:800;letter-spacing:0.05em}
+.logo span{color:#3b82f6}
+.nav-links{display:flex;gap:36px}
+.nav-links a{color:#9ca3af;font-size:0.875rem;transition:color .25s}
+.nav-links a:hover{color:#fff}
+.nav-cta{
+  background:#fff;color:#000;
+  border:none;padding:10px 24px;
+  border-radius:9999px;font-weight:700;font-size:0.875rem;
+  transition:transform .25s,box-shadow .25s;
+}
+.nav-cta:hover{transform:scale(1.05);box-shadow:0 4px 20px rgba(255,255,255,.2)}
+
+/* ═══════════════════════════════════════════
+   HERO
+═══════════════════════════════════════════ */
+.hero{
+  position:relative;min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:120px 40px 80px;overflow:hidden;
+}
+.glow{position:absolute;border-radius:50%;pointer-events:none;filter:blur(140px)}
+.glow-1{width:520px;height:520px;background:rgba(37,99,235,.22);top:60px;left:60px}
+.glow-2{width:520px;height:520px;background:rgba(124,58,237,.2);bottom:40px;right:40px}
+
+.hero-grid{
+  position:relative;z-index:2;
+  max-width:1280px;width:100%;margin:0 auto;
+  display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center;
+}
+.eyebrow{
+  display:block;text-transform:uppercase;
+  letter-spacing:0.35em;font-size:0.72rem;
+  color:#60a5fa;margin-bottom:20px;
+}
+.hero h1{font-size:clamp(2.6rem,4.5vw,4.2rem);font-weight:800;line-height:1.1;margin-bottom:24px}
+.hero h1 span{color:#3b82f6}
+.hero p{color:#9ca3af;font-size:1.05rem;line-height:1.8;margin-bottom:36px}
+.hero-btns{display:flex;flex-wrap:wrap;gap:16px}
+
+.btn-primary{
+  background:#2563eb;color:#fff;border:none;
+  padding:15px 30px;border-radius:9999px;
+  font-size:1rem;font-weight:600;
+  display:flex;align-items:center;gap:8px;
+  box-shadow:0 8px 32px rgba(37,99,235,.35);
+  transition:background .25s,transform .25s;
+}
+.btn-primary:hover{background:#1d4ed8;transform:translateY(-2px)}
+
+.btn-outline{
+  background:transparent;color:#fff;
+  border:1px solid rgba(255,255,255,.25);
+  padding:15px 30px;border-radius:9999px;
+  font-size:1rem;display:flex;align-items:center;gap:8px;
+  transition:border-color .25s,transform .25s;
+}
+.btn-outline:hover{border-color:#fff;transform:translateY(-2px)}
+
+/* Hero Card */
+.hero-card{
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:36px;padding:36px;
+  backdrop-filter:blur(24px);
+  box-shadow:0 32px 64px rgba(0,0,0,.5);
+}
+.risk-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px}
+.risk-label{color:#9ca3af;font-size:0.85rem;margin-bottom:6px}
+.risk-value{font-size:3.2rem;font-weight:800;color:#ef4444;line-height:1}
+.risk-circle{
+  width:84px;height:84px;border-radius:50%;
+  border:9px solid #ef4444;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;
+}
+.prog-item{margin-bottom:18px}
+.prog-top{display:flex;justify-content:space-between;margin-bottom:8px;font-size:0.9rem}
+.prog-bar{width:100%;background:#1f2937;border-radius:9999px;height:10px;overflow:hidden}
+.prog-fill{height:100%;border-radius:9999px}
+.fill-red{background:#ef4444;width:92%}
+.fill-yellow{background:#facc15;width:81%}
+.fill-blue{background:#3b82f6;width:74%}
+.ai-box{
+  margin-top:28px;padding:20px;border-radius:20px;
+  background:rgba(37,99,235,.1);border:1px solid rgba(59,130,246,.25);
+}
+.ai-label{color:#60a5fa;font-weight:700;margin-bottom:8px;font-size:0.9rem}
+.ai-box p{color:#d1d5db;font-size:0.875rem;line-height:1.7}
+
+/* ═══════════════════════════════════════════
+   SHARED SECTION
+═══════════════════════════════════════════ */
+section{padding:100px 40px}
+.section-inner{max-width:1280px;margin:0 auto}
+.sec-head{text-align:center;margin-bottom:64px}
+.sec-eyebrow{
+  display:block;text-transform:uppercase;
+  letter-spacing:.32em;font-size:.72rem;margin-bottom:14px;
+}
+.sec-head h2{font-size:clamp(1.9rem,3.5vw,2.8rem);font-weight:800;margin-bottom:14px;line-height:1.15}
+.sec-head p{color:#9ca3af;font-size:1rem;max-width:580px;margin:0 auto;line-height:1.75}
+.divider{border-top:1px solid rgba(255,255,255,.07)}
+
+/* ═══════════════════════════════════════════
+   FEATURES
+═══════════════════════════════════════════ */
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.feat-card{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:28px;padding:36px;
+  transition:transform .4s,border-color .3s;
+}
+.feat-card:hover{transform:translateY(-6px);border-color:rgba(255,255,255,.18)}
+.feat-icon{font-size:2.2rem;margin-bottom:22px}
+.feat-card h3{font-size:1.3rem;font-weight:700;margin-bottom:12px}
+.feat-card p{color:#9ca3af;font-size:.9rem;line-height:1.75}
+
+/* ═══════════════════════════════════════════
+   STATS
+═══════════════════════════════════════════ */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:32px;text-align:center}
+.stat-val{font-size:3rem;font-weight:800;margin-bottom:8px}
+.stat-lbl{color:#9ca3af;font-size:.9rem}
+.c-blue{color:#3b82f6}.c-purple{color:#a855f7}.c-green{color:#22c55e}.c-red{color:#ef4444}
+
+/* ═══════════════════════════════════════════
+   HOW IT WORKS
+═══════════════════════════════════════════ */
+.how-section{position:relative;overflow:hidden}
+.how-glow{
+  position:absolute;width:600px;height:600px;
+  background:rgba(124,58,237,.1);filter:blur(180px);
+  border-radius:50%;top:0;left:50%;transform:translateX(-50%);
+  pointer-events:none;
+}
+.steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;position:relative;z-index:1}
+.step-card{
+  border-radius:24px;padding:28px;border:1px solid;
+  transition:transform .35s;
+}
+.step-card:hover{transform:translateY(-5px)}
+.step-blue  {border-color:rgba(59,130,246,.3);background:rgba(59,130,246,.07)}
+.step-purple{border-color:rgba(168,85,247,.3);background:rgba(168,85,247,.07)}
+.step-green {border-color:rgba(34,197,94,.3); background:rgba(34,197,94,.07)}
+.step-red   {border-color:rgba(239,68,68,.3); background:rgba(239,68,68,.07)}
+.step-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+.step-icon{font-size:1.6rem}
+.step-num{font-size:2.4rem;font-weight:800;color:rgba(255,255,255,.09)}
+.step-card h3{font-size:1rem;font-weight:700;margin-bottom:8px}
+.step-card p{color:#9ca3af;font-size:.82rem;line-height:1.65}
+
+/* ═══════════════════════════════════════════
+   DASHBOARD PREVIEW
+═══════════════════════════════════════════ */
+.tab-row{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:32px}
+.tab-btn{
+  padding:11px 24px;border-radius:9999px;font-size:.82rem;font-weight:600;
+  border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);
+  color:#9ca3af;transition:all .3s;
+}
+.tab-btn:hover{color:#fff;border-color:rgba(255,255,255,.25)}
+.tab-btn.active{background:#2563eb;color:#fff;border-color:#2563eb;box-shadow:0 6px 20px rgba(37,99,235,.35)}
+.dash-panel{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);
+  border-radius:28px;padding:32px;backdrop-filter:blur(20px);
+  animation:fadeUp .4s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.panel-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.panel-top h3{font-size:1.15rem;font-weight:700}
+.count-badge{
+  font-size:.78rem;color:#9ca3af;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  padding:5px 14px;border-radius:9999px;
+}
+/* Risk rows */
+.risk-rows{display:flex;flex-direction:column;gap:10px}
+.risk-row{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 16px;border-radius:14px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+}
+.emp-avatar{
+  width:38px;height:38px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,rgba(59,130,246,.35),rgba(168,85,247,.35));
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.82rem;
+}
+.emp-info{flex:1;min-width:0}
+.emp-row1{display:flex;justify-content:space-between;margin-bottom:6px}
+.emp-name{font-size:.85rem;font-weight:600}
+.emp-score-r{color:#ef4444;font-weight:700;font-size:.85rem}
+.emp-score-y{color:#facc15;font-weight:700;font-size:.85rem}
+.emp-score-g{color:#22c55e;font-weight:700;font-size:.85rem}
+.emp-row2{display:flex;align-items:center;gap:10px}
+.emp-dept{font-size:.72rem;color:#6b7280;flex-shrink:0}
+.mini-bar{flex:1;background:#1f2937;border-radius:9999px;height:5px;overflow:hidden}
+.mini-fill{height:100%;border-radius:9999px}
+.risk-chip{font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:9999px;flex-shrink:0}
+.chip-r{background:rgba(239,68,68,.15);color:#f87171}
+.chip-y{background:rgba(234,179,8,.15);color:#fbbf24}
+.chip-g{background:rgba(34,197,94,.15);color:#4ade80}
+/* Dept tab */
+.dept-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.dept-card{padding:18px;border-radius:14px;border:1px solid}
+.dc-r{border-color:rgba(239,68,68,.25);background:rgba(239,68,68,.07)}
+.dc-y{border-color:rgba(234,179,8,.25);background:rgba(234,179,8,.07)}
+.dc-g{border-color:rgba(34,197,94,.25);background:rgba(34,197,94,.07)}
+.dept-top{display:flex;justify-content:space-between;margin-bottom:10px}
+.dept-name{font-size:.9rem;font-weight:600}
+.dept-pct{font-size:1.1rem;font-weight:800}
+/* Trend tab */
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:160px;margin:16px 0}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px}
+.bar-fill{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(to top,#3b82f6,#818cf8)}
+.bar-lbl{font-size:.66rem;color:#6b7280}
+.trend-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}
+.trend-stat{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+  border-radius:14px;padding:14px;text-align:center;
+}
+.ts-lbl{color:#6b7280;font-size:.72rem;margin-bottom:5px}
+.ts-val{font-weight:700;font-size:1rem}
+
+/* ═══════════════════════════════════════════
+   TESTIMONIALS
+═══════════════════════════════════════════ */
+.test-section{position:relative;overflow:hidden}
+.test-glow{
+  position:absolute;width:500px;height:500px;
+  background:rgba(37,99,235,.08);filter:blur(180px);
+  border-radius:50%;bottom:0;right:0;pointer-events:none;
+}
+.test-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;position:relative;z-index:1}
+.test-card{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);
+  border-radius:28px;padding:32px;display:flex;flex-direction:column;
+  transition:transform .35s,border-color .3s;
+}
+.test-card:hover{transform:translateY(-5px);border-color:rgba(255,255,255,.2)}
+.stars{display:flex;gap:3px;margin-bottom:20px;color:#facc15;font-size:1rem}
+.test-quote{color:#d1d5db;font-size:.875rem;line-height:1.78;flex:1;margin-bottom:24px}
+.test-author{
+  display:flex;align-items:center;gap:12px;
+  padding-top:18px;border-top:1px solid rgba(255,255,255,.08);
+}
+.t-avatar{
+  width:42px;height:42px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;
+  flex-shrink:0;
+}
+.av-blue  {background:rgba(59,130,246,.2);color:#93c5fd}
+.av-purple{background:rgba(168,85,247,.2);color:#c4b5fd}
+.av-green {background:rgba(34,197,94,.2); color:#86efac}
+.t-name{font-size:.85rem;font-weight:700;margin-bottom:2px}
+.t-role{font-size:.72rem;color:#6b7280}
+
+/* ═══════════════════════════════════════════
+   PRICING
+═══════════════════════════════════════════ */
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;align-items:start}
+.price-card{
+  border-radius:28px;padding:36px;border:2px solid;
+  position:relative;transition:transform .35s;
+}
+.price-card:hover{transform:translateY(-5px)}
+.pc-std{border-color:rgba(255,255,255,.1);background:rgba(255,255,255,.04)}
+.pc-pop{border-color:#3b82f6;background:rgba(37,99,235,.06)}
+.pop-badge{
+  position:absolute;top:-15px;left:50%;transform:translateX(-50%);
+  background:#2563eb;color:#fff;font-size:.72rem;font-weight:800;
+  padding:5px 18px;border-radius:9999px;
+  box-shadow:0 6px 18px rgba(37,99,235,.45);white-space:nowrap;
+}
+.plan-name{font-size:1.15rem;font-weight:800;margin-bottom:8px}
+.plan-price{display:flex;align-items:baseline;gap:4px;margin-bottom:28px}
+.plan-amount{font-size:2.8rem;font-weight:800}
+.plan-per{color:#6b7280;font-size:.9rem}
+.plan-feats{display:flex;flex-direction:column;gap:12px;margin-bottom:30px}
+.plan-feats li{display:flex;align-items:center;gap:10px;font-size:.875rem;color:#d1d5db}
+.chk{color:#22c55e;font-size:1rem}
+.plan-btn{
+  width:100%;padding:15px;border-radius:14px;font-weight:700;font-size:.9rem;
+  transition:all .3s;
+}
+.pb-outline{background:transparent;border:1px solid rgba(255,255,255,.2);color:#fff}
+.pb-outline:hover{border-color:#fff}
+.pb-filled{background:#2563eb;border:none;color:#fff;box-shadow:0 6px 20px rgba(37,99,235,.3)}
+.pb-filled:hover{background:#1d4ed8}
+
+/* ═══════════════════════════════════════════
+   TRUST / INTEGRATIONS
+═══════════════════════════════════════════ */
+.trust-section{padding:72px 40px}
+.trust-lbl{text-align:center;color:#6b7280;text-transform:uppercase;letter-spacing:.22em;font-size:.72rem;margin-bottom:32px}
+.brand-row{display:flex;flex-wrap:wrap;justify-content:center;gap:14px}
+.brand-chip{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+  border-radius:14px;padding:13px 26px;font-size:.82rem;color:#9ca3af;font-weight:600;
+  transition:all .3s;
+}
+.brand-chip:hover{border-color:rgba(255,255,255,.22);color:#fff}
+.cert-row{display:flex;flex-wrap:wrap;justify-content:center;gap:40px;margin-top:52px}
+.cert-item{display:flex;align-items:center;gap:10px}
+.cert-icon{font-size:1.4rem}
+.cert-t{font-size:.85rem;font-weight:700}
+.cert-s{font-size:.72rem;color:#6b7280}
+
+/* ═══════════════════════════════════════════
+   FAQ
+═══════════════════════════════════════════ */
+.faq-list{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.faq-item{
+  border:1px solid rgba(255,255,255,.1);border-radius:18px;
+  background:rgba(255,255,255,.04);overflow:hidden;transition:border-color .3s,background .3s;
+}
+.faq-item.open{border-color:rgba(59,130,246,.35);background:rgba(37,99,235,.05)}
+.faq-q{
+  width:100%;display:flex;justify-content:space-between;align-items:center;
+  padding:18px 22px;background:transparent;border:none;color:#fff;
+  font-size:.9rem;font-weight:600;cursor:pointer;text-align:left;gap:14px;
+}
+.faq-arrow{color:#9ca3af;font-size:1rem;transition:transform .3s,color .3s;flex-shrink:0}
+.faq-item.open .faq-arrow{transform:rotate(180deg);color:#60a5fa}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .35s ease,padding .3s}
+.faq-item.open .faq-a{max-height:150px;padding:0 22px 18px}
+.faq-a p{color:#9ca3af;font-size:.85rem;line-height:1.75}
+
+/* ═══════════════════════════════════════════
+   CTA BANNER
+═══════════════════════════════════════════ */
+.cta-wrap{padding:64px 40px}
+.cta-banner{
+  max-width:880px;margin:0 auto;
+  border-radius:36px;padding:80px 48px;text-align:center;
+  border:1px solid rgba(59,130,246,.3);
+  background:linear-gradient(135deg,rgba(37,99,235,.2),rgba(124,58,237,.1),#020617);
+  position:relative;overflow:hidden;
+}
+.cta-glow{
+  position:absolute;inset:0;
+  background:rgba(37,99,235,.06);filter:blur(60px);pointer-events:none;
+}
+.cta-inner{position:relative;z-index:1}
+.cta-icon{font-size:3rem;margin-bottom:20px}
+.cta-banner h2{font-size:clamp(1.8rem,3.5vw,2.6rem);font-weight:800;margin-bottom:18px}
+.cta-banner p{color:#9ca3af;font-size:.95rem;line-height:1.75;max-width:520px;margin:0 auto 32px}
+.cta-btns{display:flex;flex-wrap:wrap;gap:14px;justify-content:center}
+
+/* ═══════════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════════ */
+footer{
+  padding:56px 40px 32px;
+  border-top:1px solid rgba(255,255,255,.07);
+}
+.footer-grid{
+  max-width:1280px;margin:0 auto;
+  display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:44px;
+}
+.footer-logo{font-size:1.2rem;font-weight:800;letter-spacing:.05em;margin-bottom:12px}
+.footer-logo span{color:#3b82f6}
+.footer-desc{color:#6b7280;font-size:.82rem;line-height:1.7}
+.footer-col h4{font-size:.82rem;font-weight:700;margin-bottom:16px;color:#fff}
+.footer-col ul{display:flex;flex-direction:column;gap:10px}
+.footer-col ul a{color:#6b7280;font-size:.82rem;transition:color .25s}
+.footer-col ul a:hover{color:#fff}
+.footer-bottom{
+  max-width:1280px;margin:0 auto;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
+  padding-top:24px;border-top:1px solid rgba(255,255,255,.07);
+}
+.footer-bottom p{color:#6b7280;font-size:.78rem}
+.social-links{display:flex;gap:22px}
+.social-links a{color:#6b7280;font-size:.78rem;transition:color .25s}
+.social-links a:hover{color:#fff}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media(max-width:1024px){
+  .features-grid,.test-grid,.pricing-grid{grid-template-columns:repeat(2,1fr)}
+  .steps-grid{grid-template-columns:repeat(2,1fr)}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .footer-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:768px){
+  .hero-grid{grid-template-columns:1fr;gap:48px}
+  .nav-links{display:none}
+  section{padding:72px 20px}
+  .features-grid,.test-grid,.pricing-grid,.steps-grid,.stats-grid,.dept-grid{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr}
+  .footer-bottom{flex-direction:column;text-align:center}
+  .cta-banner{padding:48px 24px}
+  .hero{padding:100px 20px 60px}
+  .trust-section,.cta-wrap{padding:60px 20px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ NAVBAR ══════════ -->
+<nav>
+  <div class="nav-inner">
+    <div class="logo">Attrition<span>AI</span></div>
+    <ul class="nav-links">
+      <li><a href="#">Features</a></li>
+      <li><a href="#">Analytics</a></li>
+      <li><a href="#">Prediction</a></li>
+      <li><a href="#">Dashboard</a></li>
+      <li><a href="#">Pricing</a></li>
+    </ul>
+    <button class="nav-cta">Get Started</button>
+  </div>
+</nav>
+
+<!-- ══════════ HERO ══════════ -->
+<section class="hero">
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+  <div class="hero-grid">
+    <!-- Left -->
+    <div>
+      <span class="eyebrow">AI Powered HR Intelligence</span>
+      <h1>Predict Employee Attrition <span>Before It Happens</span></h1>
+      <p>Smart employee attrition prediction using XGBoost, explainable AI insights, retention analytics, and real-time HR dashboards.</p>
+      <div class="hero-btns">
+        <button class="btn-primary">⬆ Upload Dataset</button>
+        <button class="btn-outline">Live Demo ›</button>
+      </div>
+    </div>
+    <!-- Right Card -->
+    <div class="hero-card">
+      <div class="risk-header">
+        <div>
+          <div class="risk-label">Attrition Risk</div>
+          <div class="risk-value">87%</div>
+        </div>
+        <div class="risk-circle">🧠</div>
+      </div>
+      <div class="prog-item">
+        <div class="prog-top"><span>Overtime</span><span>92%</span></div>
+        <div class="prog-bar"><div class="prog-fill fill-red"></div></div>
+      </div>
+      <div class="prog-item">
+        <div class="prog-top"><span>Job Satisfaction</span><span>81%</span></div>
+        <div class="prog-bar"><div class="prog-fill fill-yellow"></div></div>
+      </div>
+      <div class="prog-item">
+        <div class="prog-top"><span>Distance From Home</span><span>74%</span></div>
+        <div class="prog-bar"><div class="prog-fill fill-blue"></div></div>
+      </div>
+      <div class="ai-box">
+        <div class="ai-label">AI Recommendation</div>
+        <p>Offer flexible work options and schedule a manager feedback session to reduce resignation risk.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ FEATURES ══════════ -->
+<section class="divider">
+  <div class="section-inner">
+    <div class="sec-head">
+      <h2>Smart HR Analytics Platform</h2>
+      <p>Everything HR teams need to predict and prevent attrition.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feat-card">
+        <div class="feat-icon c-blue">🧠</div>
+        <h3>AI Prediction</h3>
+        <p>Predict employee resignation risk using advanced XGBoost models.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon c-purple">📊</div>
+        <h3>Analytics Dashboard</h3>
+        <p>View attrition trends, department insights, and employee data.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon c-green">🛡</div>
+        <h3>Explainable AI</h3>
+        <p>Understand the top reasons behind every attrition prediction.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ STATS ══════════ -->
+<section class="divider">
+  <div class="section-inner">
+    <div class="stats-grid">
+      <div><div class="stat-val c-blue">92%</div><div class="stat-lbl">Prediction Accuracy</div></div>
+      <div><div class="stat-val c-purple">50K+</div><div class="stat-lbl">Employees Analysed</div></div>
+      <div><div class="stat-val c-green">120+</div><div class="stat-lbl">Companies Supported</div></div>
+      <div><div class="stat-val c-red">35%</div><div class="stat-lbl">Attrition Reduced</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ HOW IT WORKS ══════════ -->
+<section class="how-section divider">
+  <div class="how-glow"></div>
+  <div class="section-inner">
+    <div class="sec-head">
+      <span class="sec-eyebrow" style="color:#a78bfa">Simple Process</span>
+      <h2>How AttritionAI Works</h2>
+      <p>From raw HR data to actionable retention insights in minutes — no data science expertise needed.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card step-blue">
+        <div class="step-top">
+          <div class="step-icon c-blue">⬆</div>
+          <div class="step-num">01</div>
+        </div>
+        <h3>Upload HR Data</h3>
+        <p>Securely upload your employee dataset in CSV or Excel format.</p>
+      </div>
+      <div class="step-card step-purple">
+        <div class="step-top">
+          <div class="step-icon c-purple">🧠</div>
+          <div class="step-num">02</div>
+        </div>
+        <h3>AI Processes Data</h3>
+        <p>XGBoost model analyzes 30+ behavioral and role-based features.</p>
+      </div>
+      <div class="step-card step-green">
+        <div class="step-top">
+          <div class="step-icon c-green">📊</div>
+          <div class="step-num">03</div>
+        </div>
+        <h3>View Risk Scores</h3>
+        <p>Each employee gets an attrition risk score with explanations.</p>
+      </div>
+      <div class="step-card step-red">
+        <div class="step-top">
+          <div class="step-icon" style="color:#f87171">🎯</div>
+          <div class="step-num">04</div>
+        </div>
+        <h3>Take Action</h3>
+        <p>Receive personalized AI retention recommendations per employee.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ DASHBOARD PREVIEW ══════════ -->
+<section class="divider">
+  <div class="section-inner">
+    <div class="sec-head">
+      <span class="sec-eyebrow" style="color:#60a5fa">Interactive Preview</span>
+      <h2>Everything in One Dashboard</h2>
+      <p>See exactly what your HR team gets — live risk scores, analytics, and recommendations.</p>
+    </div>
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab('risk',this)">Risk Overview</button>
+      <button class="tab-btn" onclick="switchTab('dept',this)">Department View</button>
+      <button class="tab-btn" onclick="switchTab('trends',this)">Attrition Trends</button>
+    </div>
+    <!-- Risk Panel -->
+    <div class="dash-panel" id="tab-risk">
+      <div class="panel-top">
+        <h3>Employee Risk Scores</h3>
+        <span class="count-badge">12 High Risk Employees</span>
+      </div>
+      <div class="risk-rows">
+        <div class="risk-row">
+          <div class="emp-avatar">J</div>
+          <div class="emp-info">
+            <div class="emp-row1"><span class="emp-name">John M.</span><span class="emp-score-r">91%</span></div>
+            <div class="emp-row2"><span class="emp-dept">Sales</span><div class="mini-bar"><div class="mini-fill" style="width:91%;background:#ef4444"></div></div></div>
+          </div>
+          <span class="risk-chip chip-r">High Risk</span>
+        </div>
+        <div class="risk-row">
+          <div class="emp-avatar">P</div>
+          <div class="emp-info">
+            <div class="emp-row1"><span class="emp-name">Priya K.</span><span class="emp-score-y">78%</span></div>
+            <div class="emp-row2"><span class="emp-dept">Engineering</span><div class="mini-bar"><div class="mini-fill" style="width:78%;background:#facc15"></div></div></div>
+          </div>
+          <span class="risk-chip chip-y">Medium</span>
+        </div>
+        <div class="risk-row">
+          <div class="emp-avatar">L</div>
+          <div class="emp-info">
+            <div class="emp-row1"><span class="emp-name">Leo T.</span><span class="emp-score-y">65%</span></div>
+            <div class="emp-row2"><span class="emp-dept">HR</span><div class="mini-bar"><div class="mini-fill" style="width:65%;background:#facc15"></div></div></div>
+          </div>
+          <span class="risk-chip chip-y">Medium</span>
+        </div>
+        <div class="risk-row">
+          <div class="emp-avatar">A</div>
+          <div class="emp-info">
+            <div class="emp-row1"><span class="emp-name">Ananya R.</span><span class="emp-score-g">42%</span></div>
+            <div class="emp-row2"><span class="emp-dept">Finance</span><div class="mini-bar"><div class="mini-fill" style="width:42%;background:#22c55e"></div></div></div>
+          </div>
+          <span class="risk-chip chip-g">Low Risk</span>
+        </div>
+        <div class="risk-row">
+          <div class="emp-avatar">D</div>
+          <div class="emp-info">
+            <div class="emp-row1"><span class="emp-name">David S.</span><span class="emp-score-g">28%</span></div>
+            <div class="emp-row2"><span class="emp-dept">Marketing</span><div class="mini-bar"><div class="mini-fill" style="width:28%;background:#22c55e"></div></div></div>
+          </div>
+          <span class="risk-chip chip-g">Low Risk</span>
+        </div>
+      </div>
+    </div>
+    <!-- Dept Panel -->
+    <div class="dash-panel" id="tab-dept" style="display:none">
+      <div class="panel-top"><h3>Department Attrition Breakdown</h3></div>
+      <div class="dept-grid">
+        <div class="dept-card dc-r"><div class="dept-top"><span class="dept-name">Sales</span><span class="dept-pct" style="color:#f87171">34%</span></div><div class="prog-bar"><div class="prog-fill" style="width:85%;background:#ef4444"></div></div></div>
+        <div class="dept-card dc-y"><div class="dept-top"><span class="dept-name">Engineering</span><span class="dept-pct" style="color:#fbbf24">18%</span></div><div class="prog-bar"><div class="prog-fill" style="width:45%;background:#facc15"></div></div></div>
+        <div class="dept-card dc-y"><div class="dept-top"><span class="dept-name">HR</span><span class="dept-pct" style="color:#fbbf24">14%</span></div><div class="prog-bar"><div class="prog-fill" style="width:35%;background:#facc15"></div></div></div>
+        <div class="dept-card dc-g"><div class="dept-top"><span class="dept-name">Finance</span><span class="dept-pct" style="color:#4ade80">9%</span></div><div class="prog-bar"><div class="prog-fill" style="width:23%;background:#22c55e"></div></div></div>
+        <div class="dept-card dc-y"><div class="dept-top"><span class="dept-name">Marketing</span><span class="dept-pct" style="color:#fbbf24">12%</span></div><div class="prog-bar"><div class="prog-fill" style="width:30%;background:#facc15"></div></div></div>
+        <div class="dept-card dc-g"><div class="dept-top"><span class="dept-name">Operations</span><span class="dept-pct" style="color:#4ade80">7%</span></div><div class="prog-bar"><div class="prog-fill" style="width:18%;background:#22c55e"></div></div></div>
+      </div>
+    </div>
+    <!-- Trends Panel -->
+    <div class="dash-panel" id="tab-trends" style="display:none">
+      <div class="panel-top"><h3>12-Month Attrition Trend</h3></div>
+      <div class="bar-chart">
+        <div class="bar-col"><div class="bar-fill" style="height:112px;opacity:.72"></div><span class="bar-lbl">J</span></div>
+        <div class="bar-col"><div class="bar-fill" style="height:128px;opacity:.74"></div><span class="bar-lbl">F</span></div>
+        <div class="bar-col"><div class="bar-fill" style="height:140px;opacity:.76"></div><span class="bar-lbl">M</span></div>
+        <div class="bar-col"><div class="bar-fill" style="height:120px;opacity:.78"></div><span class="bar-lbl">A</span></div>
+        <div class="bar-col"><div class="bar-fill" style="height:104px;opacity:.80"></div><span class="bar-lbl">M</span></div>
+        <div class="bar-col"><div class="bar-fill" style="height:88px;opacity:.82"></div><span class="bar-lbl">J</span></div>
+        <div class="bar-col"><div class="bar-fill" style="height:72px;opacity:.84"></div><span class="bar-lbl">J</span></div>
+        <div class="bar-col"><div class="bar-fill" style="height:80px;opacity:.86"></div><span class="bar-lbl">A</span></div>
+        <div class="bar-col"><div class="bar-fill" style="height:64px;opacity:.88"></div><span class="bar-lbl">S</span></div>
+        <div class="bar-col"><div class="bar-fill" style="height:52px;opacity:.90"></div><span class="bar-lbl">O</span></div>
+        <div class="bar-col"><div class="bar-fill" style="height:44px;opacity:.92"></div><span class="bar-lbl">N</span></div>
+        <div class="bar-col"><div class="bar-fill" style="height:36px;opacity:.95"></div><span class="bar-lbl">D</span></div>
+      </div>
+      <div class="trend-stats">
+        <div class="trend-stat"><div class="ts-lbl">Peak Month</div><div class="ts-val" style="color:#f87171">Mar — 35%</div></div>
+        <div class="trend-stat"><div class="ts-lbl">Current</div><div class="ts-val" style="color:#4ade80">Dec — 9%</div></div>
+        <div class="trend-stat"><div class="ts-lbl">Improvement</div><div class="ts-val" style="color:#60a5fa">↓ 74%</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ TESTIMONIALS ══════════ -->
+<section class="test-section divider">
+  <div class="test-glow"></div>
+  <div class="section-inner">
+    <div class="sec-head">
+      <span class="sec-eyebrow" style="color:#4ade80">Trusted by HR Leaders</span>
+      <h2>Real Results, Real Teams</h2>
+    </div>
+    <div class="test-grid">
+      <div class="test-card">
+        <div class="stars">★★★★★</div>
+        <p class="test-quote">"AttritionAI cut our voluntary turnover by 38% in the first quarter. The explainable AI feature helped us have the right conversations with at-risk employees."</p>
+        <div class="test-author">
+          <div class="t-avatar av-blue">SM</div>
+          <div><div class="t-name">Sarah Mitchell</div><div class="t-role">HR Director, TechFlow Inc.</div></div>
+        </div>
+      </div>
+      <div class="test-card">
+        <div class="stars">★★★★★</div>
+        <p class="test-quote">"The prediction accuracy is remarkable. We used to guess who might leave — now we know weeks in advance and can act proactively."</p>
+        <div class="test-author">
+          <div class="t-avatar av-purple">RI</div>
+          <div><div class="t-name">Rajan Iyer</div><div class="t-role">People Analytics Lead, InnovateCo</div></div>
+        </div>
+      </div>
+      <div class="test-card">
+        <div class="stars">★★★★★</div>
+        <p class="test-quote">"Implementation was seamless. The dashboard gives our managers real-time visibility into team health without any extra training needed."</p>
+        <div class="test-author">
+          <div class="t-avatar av-green">PS</div>
+          <div><div class="t-name">Priya Sharma</div><div class="t-role">CHRO, GlobalEdge Solutions</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ PRICING ══════════ -->
+<section class="divider">
+  <div class="section-inner">
+    <div class="sec-head">
+      <span class="sec-eyebrow" style="color:#60a5fa">Transparent Pricing</span>
+      <h2>Plans That Scale With You</h2>
+      <p>Start free for 14 days. No credit card required.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="price-card pc-std">
+        <div class="plan-name">Starter</div>
+        <div class="plan-price"><span class="plan-amount">$49</span><span class="plan-per">/mo</span></div>
+        <ul class="plan-feats">
+          <li><span class="chk">✓</span>Up to 100 employees</li>
+          <li><span class="chk">✓</span>Monthly predictions</li>
+          <li><span class="chk">✓</span>Basic dashboard</li>
+          <li><span class="chk">✓</span>Email support</li>
+          <li><span class="chk">✓</span>CSV export</li>
+        </ul>
+        <button class="plan-btn pb-outline">Get Started</button>
+      </div>
+      <div class="price-card pc-pop">
+        <div class="pop-badge">Most Popular</div>
+        <div class="plan-name">Growth</div>
+        <div class="plan-price"><span class="plan-amount">$149</span><span class="plan-per">/mo</span></div>
+        <ul class="plan-feats">
+          <li><span class="chk">✓</span>Up to 1,000 employees</li>
+          <li><span class="chk">✓</span>Real-time predictions</li>
+          <li><span class="chk">✓</span>Advanced analytics</li>
+          <li><span class="chk">✓</span>Explainable AI insights</li>
+          <li><span class="chk">✓</span>Priority support</li>
+          <li><span class="chk">✓</span>API access</li>
+        </ul>
+        <button class="plan-btn pb-filled">Get Started</button>
+      </div>
+      <div class="price-card pc-std">
+        <div class="plan-name">Enterprise</div>
+        <div class="plan-price"><span class="plan-amount">Custom</span></div>
+        <ul class="plan-feats">
+          <li><span class="chk">✓</span>Unlimited employees</li>
+          <li><span class="chk">✓</span>Custom ML models</li>
+          <li><span class="chk">✓</span>White-label dashboard</li>
+          <li><span class="chk">✓</span>Dedicated CSM</li>
+          <li><span class="chk">✓</span>SSO & compliance</li>
+          <li><span class="chk">✓</span>SLA guarantee</li>
+        </ul>
+        <button class="plan-btn pb-outline">Contact Sales</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ TRUST ══════════ -->
+<section class="trust-section divider">
+  <div class="section-inner">
+    <p class="trust-lbl">Integrates with your existing HR stack</p>
+    <div class="brand-row">
+      <div class="brand-chip">Workday</div>
+      <div class="brand-chip">SAP SuccessFactors</div>
+      <div class="brand-chip">BambooHR</div>
+      <div class="brand-chip">ADP</div>
+      <div class="brand-chip">Greenhouse</div>
+      <div class="brand-chip">Slack</div>
+    </div>
+    <div class="cert-row">
+      <div class="cert-item"><span class="cert-icon c-green">🛡</span><div><div class="cert-t">SOC 2 Type II</div><div class="cert-s">Certified</div></div></div>
+      <div class="cert-item"><span class="cert-icon c-blue">🌐</span><div><div class="cert-t">GDPR</div><div class="cert-s">Compliant</div></div></div>
+      <div class="cert-item"><span class="cert-icon" style="color:#facc15">🏆</span><div><div class="cert-t">ISO 27001</div><div class="cert-s">Certified</div></div></div>
+      <div class="cert-item"><span class="cert-icon c-purple">🔒</span><div><div class="cert-t">AES-256</div><div class="cert-s">Encrypted</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ FAQ ══════════ -->
+<section class="divider">
+  <div class="section-inner">
+    <div class="sec-head">
+      <span class="sec-eyebrow" style="color:#a78bfa">Got Questions?</span>
+      <h2>Frequently Asked</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFAQ(this)">What data do I need to get started?<span class="faq-arrow">▾</span></button>
+        <div class="faq-a"><p>You need a basic HR dataset with fields like job role, department, tenure, salary band, performance score, and overtime status. We provide a template to help standardize your data.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFAQ(this)">How accurate is the attrition prediction?<span class="faq-arrow">▾</span></button>
+        <div class="faq-a"><p>Our XGBoost model achieves 92% accuracy on standard IBM HR datasets and 87–94% on client data depending on data quality and size.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFAQ(this)">Is my employee data secure?<span class="faq-arrow">▾</span></button>
+        <div class="faq-a"><p>Absolutely. We use AES-256 encryption, SOC 2 Type II compliant infrastructure, and never share your data with third parties.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFAQ(this)">Can I integrate AttritionAI with my existing HRMS?<span class="faq-arrow">▾</span></button>
+        <div class="faq-a"><p>Yes. We offer native integrations with Workday, SAP SuccessFactors, BambooHR, and a REST API for custom integrations.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFAQ(this)">How long does setup take?<span class="faq-arrow">▾</span></button>
+        <div class="faq-a"><p>Most teams are up and running within 24 hours. Upload your data, and AI predictions are ready within minutes.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ CTA ══════════ -->
+<div class="cta-wrap">
+  <div class="cta-banner">
+    <div class="cta-glow"></div>
+    <div class="cta-inner">
+      <div class="cta-icon">📉</div>
+      <h2>Ready to Reduce Attrition?</h2>
+      <p>Join 120+ companies using AttritionAI to retain their best talent. Start your free 14-day trial — no credit card needed.</p>
+      <div class="cta-btns">
+        <button class="btn-primary">Start Free Trial →</button>
+        <button class="btn-outline">▶ Watch Demo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer>
+  <div class="footer-grid">
+    <div>
+      <div class="footer-logo">Attrition<span>AI</span></div>
+      <p class="footer-desc">AI-powered employee attrition prediction and HR analytics platform.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Product</h4>
+      <ul>
+        <li><a href="#">Features</a></li>
+        <li><a href="#">Pricing</a></li>
+        <li><a href="#">Integrations</a></li>
+        <li><a href="#">Changelog</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <ul>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Blog</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <ul>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Terms of Service</a></li>
+        <li><a href="#">Cookie Policy</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 AttritionAI • Employee Attrition Prediction System</p>
+    <div class="social-links">
+      <a href="#">Twitter</a>
+      <a href="#">LinkedIn</a>
+      <a href="#">GitHub</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+function switchTab(id, btn) {
+  ['risk','dept','trends'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===id ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function toggleFAQ(btn) {
+  const item = btn.parentElement;
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+</script>
+</body>
+</html>
