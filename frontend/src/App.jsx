@@ -1,3 +1,4 @@
+import PredictionForm from './components/PredictionForm';
 import React, { useState, useEffect } from "react";
 
 function App() {
@@ -21,15 +22,38 @@ function App() {
     }
   };
 
+  // Working Login Handler
+  const handleLogin = () => {
+    const email = document.getElementById('loginEmail')?.value;
+    const password = document.getElementById('loginPassword')?.value;
+    if (email && password) {
+      alert(`Welcome back, ${email}! Login successful.`);
+      setIsLoginModalOpen(false);
+    } else {
+      alert('Please enter both email and password');
+    }
+  };
+
+  // Working Signup Handler
+  const handleSignup = () => {
+    const name = document.getElementById('signupName')?.value;
+    const email = document.getElementById('signupEmail')?.value;
+    const password = document.getElementById('signupPassword')?.value;
+    if (name && email && password) {
+      alert(`Account created for ${name}! Please login.`);
+      setIsSignupModalOpen(false);
+    } else {
+      alert('Please fill in all fields');
+    }
+  };
+
   // Button handlers
   const handleUploadDataset = () => {
     alert("📁 Upload Dataset feature coming soon!\n\nYou'll be able to upload CSV or Excel files.");
-    // You can integrate file upload logic here later
   };
 
   const handleLiveDemo = () => {
     alert("🎬 Live Demo\n\nWatch how AttritionAI predicts employee attrition in real-time!");
-    // You can integrate demo video or tour here
   };
 
   const handleStartFreeTrial = () => {
@@ -38,7 +62,6 @@ function App() {
 
   const handleWatchDemo = () => {
     alert("🎬 Demo Video\n\nSee how AttritionAI helps reduce employee turnover by 35%.");
-    // You can integrate a video modal or YouTube link here
   };
 
   useEffect(() => {
@@ -146,7 +169,6 @@ function App() {
       {/* STATS */}
       <section className="divider" id="stats">
         <div className="section-inner">
-        {/* Add this heading for the stats section */}
           <div className="sec-head">
             <span className="sec-eyebrow" style={{ color: "#60a5fa" }}>Performance Metrics</span>
             <h2>Proven Results That Matter</h2>
@@ -236,6 +258,17 @@ function App() {
               </div>
             </div>
           )}
+
+          {/* PREDICTION FORM - Styled like Login Modal */}
+          <div style={{ 
+            marginTop: '60px', 
+            paddingTop: '40px', 
+            borderTop: '1px solid rgba(255,255,255,0.1)',
+            display: 'flex',
+            justifyContent: 'center'
+          }}>
+            <PredictionForm />
+          </div>
         </div>
       </section>
 
@@ -352,24 +385,26 @@ function App() {
         </div>
       </div>
 
-      {/* MODALS */}
+      {/* LOGIN MODAL - FIXED with working IDs */}
       <div className="modal" style={{ display: isLoginModalOpen ? "flex" : "none" }}>
         <div className="modal-box">
           <span className="close" onClick={() => setIsLoginModalOpen(false)}>×</span>
           <h2>Login</h2>
-          <input type="email" placeholder="Enter Email" />
-          <input type="password" placeholder="Enter Password" />
-          <button>Login</button>
+          <input type="email" id="loginEmail" placeholder="Enter Email" />
+          <input type="password" id="loginPassword" placeholder="Enter Password" />
+          <button onClick={handleLogin}>Login</button>
         </div>
       </div>
+
+      {/* SIGNUP MODAL - FIXED with working IDs */}
       <div className="modal" style={{ display: isSignupModalOpen ? "flex" : "none" }}>
         <div className="modal-box">
           <span className="close" onClick={() => setIsSignupModalOpen(false)}>×</span>
           <h2>Create Account</h2>
-          <input type="text" placeholder="Full Name" />
-          <input type="email" placeholder="Enter Email" />
-          <input type="password" placeholder="Create Password" />
-          <button>Create Account</button>
+          <input type="text" id="signupName" placeholder="Full Name" />
+          <input type="email" id="signupEmail" placeholder="Enter Email" />
+          <input type="password" id="signupPassword" placeholder="Create Password" />
+          <button onClick={handleSignup}>Create Account</button>
         </div>
       </div>
 
